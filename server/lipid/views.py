@@ -1,3 +1,5 @@
+import json
+
 from django.shortcuts import render
 import pandas as pd
 import torch
@@ -18,7 +20,8 @@ import base64
 
 
 # Create your views here.
-def prediction():
+def prediction(req):
+    data=json.loads(req.body)
     # Load and preprocess the dataset
     df = pd.read_csv('static/moleculesEDited.csv')
 
@@ -211,39 +214,36 @@ def prediction():
         }
         return molecule_data
 
-    pressed = int(input("Press 1 for individual composition and Press 2 for mixed composition : "))
+    pressed = int(data.get('issingle'))
     prediction_value=None
     if pressed == 2:
-        lipid_name = input(" Please enter the 1st lipid composition (molar) : ")
-        percentage = float(input("Enter the percentage of the lipid"))
-        lipid_name2 = input(" Please enter the 2nd lipid composition (molar) : ")
-        percentage2 = float(input("Enter the percentage of the lipid"))
+        lipid_name = data.get('lipid_name')
+        percentage = float(data.get('percentage'))
+        lipid_name2 = data.get('lipid_name2')
+        percentage2 = float(data.get('percentage2'))
         molecule_data = get_molecule_data(lipid_name)
         molecule_data2 = get_molecule_data(lipid_name2)
-
         processed_POPC = process_new_molecule(molecule_data, feature_encodings, max_length)
         processed_POPE = process_new_molecule(molecule_data2, feature_encodings, max_length)
 
         prediction_POPC = predict_new_molecule(DataLoader([processed_POPC], batch_size=1))
         prediction_POPE = predict_new_molecule(DataLoader([processed_POPE], batch_size=1))
-        if isinstance(molecule_data, str):
-            print(molecule_data)
-            print(molecule_data2)
-        else:
-            print(f"{lipid_name} = {molecule_data}")
-            print(f"{lipid_name2} = {molecule_data2}")
-
+        # if isinstance(molecule_data, str):
+        #     print(molecule_data)
+        #     print(molecule_data2)
+        # else:
+        #     print(f"{lipid_name} = {molecule_data}")
+        #     print(f"{lipid_name2} = {molecule_data2}")
         prediction_value  = (percentage / 100) * prediction_POPC[0][0] + (percentage2 / 100) * prediction_POPE[0][0]
         # print("Combined Prediction for", percentage, '% ', lipid_name, "and", percentage2, " %", lipid_name2, " : ",
         #       combined_prediction)
-
     else:
-        lipid_name = input(" Please enter the lipid composition (molar) : ")
+        lipid_name = data.get('lipid_name')
         molecule_data = get_molecule_data(lipid_name)
-        if isinstance(molecule_data, str):
-            print(molecule_data)
-        else:
-            print(f"{lipid_name} = {molecule_data}")
+        # if isinstance(molecule_data, str):
+        #     print(molecule_data)
+        # else:
+        #     print(f"{lipid_name} = {molecule_data}")
         processed_new_molecule = process_new_molecule(molecule_data, feature_encodings, max_length)
         new_molecule_loader = DataLoader([processed_new_molecule], batch_size=1)
         prediction_value = predict_new_molecule(new_molecule_loader)
