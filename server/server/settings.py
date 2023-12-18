@@ -69,6 +69,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'server.wsgi.application'
+CSRF_COOKIE_SECURE = True  # Set to True if using HTTPS
 
 
 # Database

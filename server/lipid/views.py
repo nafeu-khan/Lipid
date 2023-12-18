@@ -1,8 +1,10 @@
 import json
+import os
 
 from django.shortcuts import render
 import pandas as pd
 import torch
+from rest_framework.decorators import api_view
 from torch_geometric.data import Data
 from torch_geometric.loader import DataLoader
 import ast
@@ -17,13 +19,20 @@ import matplotlib.pyplot as plt
 from django.http import JsonResponse
 from io import BytesIO
 import base64
+plt.switch_backend('agg')
 
+@api_view(['GET','POST'])
 
 # Create your views here.
 def prediction(req):
     data=json.loads(req.body)
     # Load and preprocess the dataset
-    df = pd.read_csv('static/moleculesEDited.csv')
+    current_directory = os.path.dirname(__file__)
+    file_path = os.path.join(current_directory, 'moleculesEDited.csv')
+    df = pd.read_csv(file_path)
+    # df = pd.read_csv('moleculesEDited.csv')
+    print(df)
+    print(df.keys())
 
     # Feature Engineering
     # One-hot encoding for 'Lipid composition (molar)'
@@ -182,8 +191,6 @@ def prediction(req):
                 output = model(data)
                 predictions.append(output.view(-1).tolist())
         return predictions
-
-    df = pd.read_csv('static/moleculesEDited.csv')
 
     # Function to clean tuples by removing white spaces
     def clean_tuples(tuples_list):
