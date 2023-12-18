@@ -31,8 +31,6 @@ def prediction(req):
     file_path = os.path.join(current_directory, 'moleculesEDited.csv')
     df = pd.read_csv(file_path)
     # df = pd.read_csv('moleculesEDited.csv')
-    print(df)
-    print(df.keys())
 
     # Feature Engineering
     # One-hot encoding for 'Lipid composition (molar)'
@@ -221,6 +219,12 @@ def prediction(req):
         }
         return molecule_data
 
+    current_directory = os.path.dirname(__file__)
+    file_path = os.path.join(current_directory, 'moleculesEDited.csv')
+    df = pd.read_csv(file_path)
+    print (df)
+    print("fjsjfls")
+    print(df.keys())
     pressed = int(data.get('issingle'))
     prediction_value=None
     if pressed == 2:
