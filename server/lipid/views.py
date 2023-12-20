@@ -4,6 +4,8 @@ import os
 from django.shortcuts import render
 import pandas as pd
 import torch
+from django.template.context_processors import csrf
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import api_view
 from torch_geometric.data import Data
 from torch_geometric.loader import DataLoader
@@ -22,7 +24,7 @@ import base64
 plt.switch_backend('agg')
 
 @api_view(['GET','POST'])
-
+@csrf_exempt
 # Create your views here.
 def prediction(req):
     data=json.loads(req.body)
@@ -223,6 +225,8 @@ def prediction(req):
     file_path = os.path.join(current_directory, 'moleculesEDited.csv')
     df = pd.read_csv(file_path)
     print (df)
+    print(data["issingle"])
+    print(data["lipid_name"])
     print("fjsjfls")
     print(df.keys())
     pressed = int(data.get('issingle'))
