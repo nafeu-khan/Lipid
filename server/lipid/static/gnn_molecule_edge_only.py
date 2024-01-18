@@ -110,6 +110,39 @@ def edge_pred(mol_name):
 
 
     print(predicted_edges)
+
+
+    def convert_to_json(data_list, name):
+        node_dict = {}
+        links_dict = {}
+
+        for link in data_list:
+            source, target = link
+
+            if source not in node_dict:
+                node_dict[source] = {"name": source, "value": 0, "children": [], "linkWith": []}
+            if target not in node_dict:
+                node_dict[target] = {"name": target, "value": 0, "children": [], "linkWith": []}
+
+            node_dict[source]["linkWith"].append(target)
+            node_dict[target]["linkWith"].append(source)
+
+            links_dict[f"{source}_{target}"] = {"source": source, "target": target, "value": 1}
+
+        root_name = name
+        root_node = {"name": root_name, "value": 50, "children": list(node_dict.values()), "linkWith": []}
+
+        for node in node_dict.values():
+            root_node["linkWith"].extend(node["linkWith"])
+            node["value"] = len(node["linkWith"])
+            node["linkWith"] = [link["source"] for link in links_dict.values() if link["target"] == node["name"]]
+
+        return root_node
+
+
+    predicted_edges = convert_to_json(predicted_edges, new_lipid_comp)
+    print(predicted_edges)
+
     if(predicted_edges):
         return JsonResponse (predicted_edges,safe=False)
     else:
