@@ -19,7 +19,10 @@ from django.urls import path
 
 from lipid.views import prediction
 
+from lipid.views import pred_edge
+
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('prediction/',prediction)
+    path('prediction/',prediction),
+    path('edge_pred/',pred_edge)
 ]
