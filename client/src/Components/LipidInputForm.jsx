@@ -13,8 +13,9 @@ const LipidInputForm = ({ lipidInput, handleInputChange, type }) => (
         <div key={index} className="flex gap-4 mt-3">
           {/* Lipid Name Input */}
           <div>
-            <label className="text-sm text-gray-700/80">Lipid Name</label>
+            <label className="text-gray-700/80">Lipid Name</label>
             <Input
+              size="large"
               placeholder="POPC"
               value={item.name}
               onChange={(e) => handleInputChange(index, "name", e.target.value)}
@@ -22,9 +23,10 @@ const LipidInputForm = ({ lipidInput, handleInputChange, type }) => (
           </div>
           {/* Percentage Input */}
           <div>
-            <label className="text-sm text-gray-700/80">Percentage</label>
+            <label className=" text-gray-700/80">Percentage</label>
             <div className="flex items-center gap-1">
               <InputNumber
+                size="large"
                 min={0}
                 max={maxPercentage}
                 className="w-16"

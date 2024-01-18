@@ -4,14 +4,15 @@ import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 import am5themes_Micro from "@amcharts/amcharts5/themes/Dataviz";
 import am5themes_Responsive from "@amcharts/amcharts5/themes/Responsive";
 import { useLayoutEffect } from "react";
-import { graph_data } from "../utility";
 // import "./App.css";
 
-const data = JSON.parse(graph_data);
+// const data = JSON.parse(graph_data);
 
-function ChartComponent({ active_lipid }) {
+function ChartComponent({ graph_data, id = "1" }) {
+  console.log(graph_data);
+
   useLayoutEffect(() => {
-    var root = am5.Root.new("chartdiv");
+    var root = am5.Root.new(`chartdiv${id}`);
 
     // root.setThemes([am5themes_Animated.new(root)]);
     root.setThemes([
@@ -76,11 +77,15 @@ function ChartComponent({ active_lipid }) {
       });
     });
 
-    let graph_data = [];
+    // let graph_data = [];
 
-    active_lipid.forEach((val) => {
-      if (val.active) graph_data.push(data[val.name]);
-    });
+    // for (const val of lipid) {
+    //   if (!val.name) {
+    //     setIsEmptyNameFound(true);
+    //     return () => root.dispose();
+    //   }
+    //   graph_data.push(data.predicted[val.name]);
+    // }
 
     series.data.setAll([
       {
@@ -91,14 +96,12 @@ function ChartComponent({ active_lipid }) {
 
     series.set("selectedDataItem", series.dataItems[0]);
 
-    return () => {
-      root.dispose();
-    };
-  }, [active_lipid]);
+    return () => root.dispose();
+  }, [graph_data]);
 
   return (
     <div
-      id="chartdiv"
+      id={`chartdiv${id}`}
       className="flex-grow"
       style={{ width: "100%", height: "100%" }}
     ></div>
