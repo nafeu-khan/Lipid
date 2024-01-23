@@ -110,7 +110,7 @@ def edge_pred(mol_name):
 
 
     print(predicted_edges)
-
+    normal_edge=predicted_edges
 
     def convert_to_json(data_list, name):
         node_dict = {}
@@ -144,7 +144,9 @@ def edge_pred(mol_name):
     print(predicted_edges)
 
     if(predicted_edges):
-        return JsonResponse (predicted_edges,safe=False)
+        return JsonResponse ({'predicted_edge':predicted_edges,
+                              'edge_data':normal_edge
+                              },safe=False)
     else:
         return JsonResponse ({},safe=False)
 
