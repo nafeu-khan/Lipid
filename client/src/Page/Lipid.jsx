@@ -27,13 +27,13 @@ function Lipid() {
   const [graph_data, setGraphData] = useState([]);
 
   useEffect(() => {
-    if (data.predicted) {
+    if (data && data.predicted) {
       let temp = [];
       for (const val of lipidInput) {
         if (data.predicted[val.name]) temp.push(data.predicted[val.name]);
       }
       setGraphData(temp);
-    }
+    } else setGraphData(undefined);
   }, [data, lipidInput]);
 
   useEffect(() => {
@@ -96,20 +96,47 @@ function Lipid() {
             </>
           )}
         </div>
-        <div className="w-full h-full flex-grow relative">
+        <div
+          className="w-full flex-grow relative"
+          style={{ height: "calc(100vh - 68px)" }}
+        >
           <Toaster />
           {isLoading ? (
             <div className="w-full h-full flex flex-col items-center justify-center relative -top-12">
               <h3 className="font-medium mb-2">Fetching Data...</h3>
               <CircularProgress />
             </div>
-          ) : operationID === "1" ? (
-            <div className="w-full h-full">
-              <ActualPredicted />
-              {graph_data && <ChartComponent graph_data={graph_data} />}
-            </div>
           ) : (
-            <div>{/* <ActualPredicted /> */}</div>
+            <div className="w-full h-full grid place-items-center">
+              {operationID === "0" && (
+                <h1 className="font-medium text-3xl mt-10">
+                  Select an operation
+                </h1>
+              )}
+              {operationID === "1" && (
+                <>
+                  <ActualPredicted />
+                  <ChartComponent graph_data={graph_data} />
+                </>
+              )}
+              {operationID === "2" && (
+                <div className="w-full h-full flex flex-col items-center p-2">
+                  <h1 className="bg-violet-500 text-gray-100 mt-2 p-2 px-4 text-lg rounded shadow font-mono">
+                    Prediction Value:{" "}
+                    <span className="text-white font-semibold">20.34</span>
+                  </h1>
+                  {data.graph ? (
+                    <img
+                      className="mt-8"
+                      src={`data:image/png;base64,${data.graph}`}
+                      alt=""
+                    />
+                  ) : (
+                    <h1 className="mt-4">No predicted data found.</h1>
+                  )}
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>

@@ -3,7 +3,11 @@ import { TreeView } from "@mui/x-tree-view";
 import { TreeItem, treeItemClasses } from "@mui/x-tree-view/TreeItem";
 import toast from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
-import { changeOperationID, getMoleculeStructure } from "../Slices/LipidSlice";
+import {
+  changeOperationID,
+  getMoleculeStructure,
+  getPredictions,
+} from "../Slices/LipidSlice";
 
 const StyledTreeItemRoot = styled(TreeItem)(({ theme }) => ({
   color: theme.palette.text.secondary,
@@ -46,7 +50,8 @@ const OperationsPanel = () => {
       }
     }
     dispatch(changeOperationID(b));
-    await dispatch(getMoleculeStructure(lipid[0].name));
+    if (b === "1") dispatch(getMoleculeStructure(lipid[0].name));
+    else dispatch(getPredictions(lipid));
   };
 
   return (

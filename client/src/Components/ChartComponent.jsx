@@ -9,9 +9,9 @@ import { useLayoutEffect } from "react";
 // const data = JSON.parse(graph_data);
 
 function ChartComponent({ graph_data, id = "1" }) {
-  console.log(graph_data);
-
+  // console.log(graph_data);
   useLayoutEffect(() => {
+    if (!graph_data) return;
     var root = am5.Root.new(`chartdiv${id}`);
 
     // root.setThemes([am5themes_Animated.new(root)]);
@@ -38,9 +38,9 @@ function ChartComponent({ graph_data, id = "1" }) {
         valueField: "value",
         categoryField: "name",
         childDataField: "children",
-        nodePadding: 10,
-        minRadius: 8,
-        maxRadius: am5.percent(5),
+        nodePadding: 15,
+        minRadius: 12,
+        maxRadius: am5.percent(8),
         linkWithField: "linkWith",
         linkWithStrength: 1,
         idField: "name",
@@ -100,11 +100,19 @@ function ChartComponent({ graph_data, id = "1" }) {
   }, [graph_data]);
 
   return (
-    <div
-      id={`chartdiv${id}`}
-      className="flex-grow"
-      style={{ width: "100%", height: "100%" }}
-    ></div>
+    <div className="w-full h-full">
+      {graph_data ? (
+        <div
+          id={`chartdiv${id}`}
+          className="flex-grow"
+          style={{ width: "100%", height: "100%" }}
+        ></div>
+      ) : (
+        <div className="w-full h-full grid place-content-center">
+          <h1 className="font-medium text-2xl">No structure found</h1>
+        </div>
+      )}
+    </div>
   );
 }
 export default ChartComponent;

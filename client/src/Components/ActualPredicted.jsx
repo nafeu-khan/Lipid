@@ -10,8 +10,17 @@ function ActualPredicted() {
   const data = useSelector((state) => state.lipid.data);
   const lipid = useSelector((state) => state.lipid.lipid);
   if (Object.keys(data).length == 0) return;
-  const actual = [data.actual[lipid[0].name]];
-  const predicted = [data.predicted[lipid[0].name]];
+  let actual = undefined,
+    predicted = undefined;
+  if (data) {
+    if (data.actual) {
+      actual = data.actual[lipid[0].name];
+    }
+    if (data.predicted) {
+      predicted = data.predicted[lipid[0].name];
+    }
+  }
+  console.log({ actual, predicted });
 
   return (
     <div className="absolute top-1.5 right-1 z-50">
@@ -41,13 +50,14 @@ function ActualPredicted() {
           <div className=" flex flex-col h-full">
             <h1 className="text-center font-medium text-xl">Actual</h1>
             <div className="w-full h-full">
-              <ChartComponent graph_data={actual} id="2" />
+              {/* TODO: Change [actual] if working with multiple lipid component. Including predicted */}
+              <ChartComponent graph_data={actual && [actual]} id="2" />
             </div>
           </div>
           <div className="border-l-4 border-gray-200 rounded-xl flex flex-col h-full">
             <h1 className="text-center font-medium text-xl">Predicted</h1>
             <div className="w-full h-full">
-              <ChartComponent graph_data={predicted} id="3" />
+              <ChartComponent graph_data={predicted && [predicted]} id="3" />
             </div>
           </div>
         </div>
