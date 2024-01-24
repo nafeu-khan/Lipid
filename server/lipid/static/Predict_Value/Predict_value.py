@@ -39,8 +39,8 @@ def predict_value(data,df):
     scaler = StandardScaler()
     numerical_features = df[
         ['N_lipids/layer', 'N_water', 'Lz_0, nm', 'Performance, us/day', 'Lx_mean, nm', 'Lz_mean', 'Area/lipid, nm^2',
-         'L/lipid, nm', 'Memb_thickness', 'kappa, kT (q^-4)', 'Time_to_reach_kappa, ns', 'q0, nm-1', 't_decorr(q0), ns',
-         'Kappa  gamma_CU (direct)', 'Kappa  BW-DCF', 'kappa  binning, kT', 'Kappa gamma/binning', 'Kappa_rsf']]
+         'L/lipid, nm', 'Memb_thickness', 'Time_to_reach_kappa, ns', 'q0, nm-1', 't_decorr(q0), ns',
+         'Kappa  gamma_CU (direct)', 'kappa  binning, kT', 'Kappa gamma/binning', 'Kappa_rsf']]
     numerical_features_scaled = scaler.fit_transform(numerical_features)
 
     # # Combining transformed features with original dataframe
@@ -266,8 +266,11 @@ def predict_value(data,df):
         return molecule_data
 
 
+    # current_directory = os.path.dirname(__file__)
+    # file_path = os.path.join(current_directory, 'moleculesEDited.csv')
+    # df = pd.read_csv(file_path)
     current_directory = os.path.dirname(__file__)
-    file_path = os.path.join(current_directory, 'moleculesEDited.csv')
+    file_path = os.path.join(current_directory, '../../filtered_molecule_Edit.csv')
     df = pd.read_csv(file_path)
     pressed = int(data.get('issingle'))
     prediction_value = None
@@ -303,5 +306,6 @@ def predict_value(data,df):
         new_molecule_loader = DataLoader([processed_new_molecule], batch_size=1)
         prediction_value = predict_new_molecule(new_molecule_loader)
         # print("individual prediction for ", lipid_name, predictions)
+        print(prediction_value)
     return JsonResponse({'graph': plot_data,
                          'pred': prediction_value})

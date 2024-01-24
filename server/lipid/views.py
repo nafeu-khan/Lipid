@@ -36,7 +36,6 @@ def prediction(req):
     current_directory = os.path.dirname(__file__)
     file_path = os.path.join(current_directory, 'filtered_molecule_Edit.csv')
     df = pd.read_csv(file_path)
-
     return predict_value(data,df)
 @api_view(['GET','POST'])
 def pred_edge(req):
