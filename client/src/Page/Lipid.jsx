@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import ActualPredicted from "../Components/ActualPredicted";
 import ChartComponent from "../Components/ChartComponent";
+import GraphTable from "../Components/GraphTable";
 import Header from "../Components/Header";
 import LipidInputForm from "../Components/LipidInputForm";
 import OperationsPanel from "../Components/OperationsPanel";
@@ -25,6 +26,7 @@ function Lipid() {
   const isLoading = useSelector((state) => state.lipid.loading);
   const data = useSelector((state) => state.lipid.data);
   const [graph_data, setGraphData] = useState([]);
+  const showTable = useSelector((state) => state.lipid.showTable);
 
   useEffect(() => {
     if (data && data.predicted) {
@@ -116,7 +118,12 @@ function Lipid() {
               {operationID === "1" && (
                 <>
                   <ActualPredicted />
-                  <ChartComponent graph_data={graph_data} />
+                  <div className="w-full h-full flex items-center">
+                    <ChartComponent graph_data={graph_data} />
+                    <div className={`${showTable ? "w-[600px] px-2" : "w-0"}`}>
+                      <GraphTable />
+                    </div>
+                  </div>
                 </>
               )}
               {operationID === "2" && (

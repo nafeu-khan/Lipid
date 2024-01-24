@@ -2,13 +2,16 @@ import { AppBar, Dialog, IconButton, Toolbar, Typography } from "@mui/material";
 import React, { useState } from "react";
 
 import CloseIcon from "@mui/icons-material/Close";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { changeShowTable } from "../Slices/LipidSlice";
 import ChartComponent from "./ChartComponent";
 
 function ActualPredicted() {
   const [open, setIsOpen] = useState(false);
   const data = useSelector((state) => state.lipid.data);
+  const dispatch = useDispatch();
   const lipid = useSelector((state) => state.lipid.lipid);
+  const showTable = useSelector((state) => state.lipid.showTable);
   if (Object.keys(data).length == 0) return;
   let actual = undefined,
     predicted = undefined;
@@ -20,10 +23,15 @@ function ActualPredicted() {
       predicted = data.predicted[lipid[0].name];
     }
   }
-  console.log({ actual, predicted });
 
   return (
-    <div className="absolute top-1.5 right-1 z-50">
+    <div className="absolute top-1.5 right-1 z-50 flex items-center gap-4">
+      <button
+        className="p-2 bg-purple-600 shadow px-3 rounded text-sm text-white"
+        onClick={() => dispatch(changeShowTable())}
+      >
+        {showTable ? "Hide" : "Show"} Node-Edges
+      </button>
       <button
         className="p-2 bg-violet-500 shadow px-3 rounded text-sm text-white"
         onClick={() => setIsOpen(true)}
