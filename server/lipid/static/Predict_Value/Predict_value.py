@@ -149,7 +149,6 @@ def predict_value(data,df):
         r2 = r2_score(y_real, y_pred)
         return total_loss / len(train_loader), r2
 
-
     def test(loader):
         model.eval()
         y_real = []
@@ -164,6 +163,19 @@ def predict_value(data,df):
         r2 = r2_score(y_real, y_pred)
         return mae, rmse, r2, y_real, y_pred
 
+    # def test(loader):
+    #     model.eval()
+    #     actual = []
+    #     predicted = []
+    #     with torch.no_grad():
+    #         for data in loader:
+    #             output = model(data)
+    #             actual.extend(data.y.view(-1).tolist())
+    #             predicted.extend(output.view(-1).tolist())
+    #     mae = mean_absolute_error(actual, predicted)
+    #     rmse = np.sqrt(mean_squared_error(actual, predicted))
+    #     r2 = r2_score(actual, predicted)
+    #     return mae, rmse, r2, actual, predicted
 
     # Training loop and evaluation
     train_losses = []
@@ -179,10 +191,15 @@ def predict_value(data,df):
         train_r2_scores.append(train_r2)
         test_losses.append(test_loss)
         test_r2_scores.append(test_r2)
-
         print(
             f'Epoch: {epoch}, Train Loss: {train_loss:.4f}, Train R²: {train_r2:.4f}, Test Loss: {test_loss:.4f}, Test R²: {test_r2:.4f}')
 
+    mae, rmse, r2, actual_values, predicted_values = test(test_loader)
+    results_df = pd.DataFrame({
+        'Actual': actual_values,
+        'Predicted': predicted_values
+    })
+    results_json = results_df.to_json(orient='records')  # Convert DataFrame to JSON
     # Plotting loss and R² scores
     plt.figure(figsize=(15, 5))
 
@@ -194,7 +211,6 @@ def predict_value(data,df):
     plt.ylabel('Loss')
     plt.title('Training and Test Loss per Epoch')
     plt.legend()
-
     # Plotting R² score
     plt.subplot(1, 2, 2)
     plt.plot(train_r2_scores, label='Train R² Score')
@@ -225,7 +241,6 @@ def predict_value(data,df):
     def process_new_molecule(new_molecule, feature_encodings, max_length):
         return process_row(new_molecule, feature_encodings, max_length)
 
-
     # Function to predict for a new molecule
     def predict_new_molecule(new_molecule_data):
         model.eval()
@@ -236,11 +251,9 @@ def predict_value(data,df):
                 predictions.append(output.view(-1).tolist())
         return predictions
 
-
     # Function to clean tuples by removing white spaces
     def clean_tuples(tuples_list):
         return [(item[0].strip(), item[1].strip()) for item in tuples_list]
-
 
     # Function to get molecule data for a given lipid
     def get_molecule_data(lipid_name):
@@ -264,7 +277,6 @@ def predict_value(data,df):
             'kappa, kT (q^-4)': 0  # This field is taken as is from the dataframe
         }
         return molecule_data
-
 
     # current_directory = os.path.dirname(__file__)
     # file_path = os.path.join(current_directory, 'moleculesEDited.csv')
@@ -307,5 +319,8 @@ def predict_value(data,df):
         prediction_value = predict_new_molecule(new_molecule_loader)
         # print("individual prediction for ", lipid_name, predictions)
         print(prediction_value)
-    return JsonResponse({'graph': plot_data,
-                         'pred': prediction_value})
+    return JsonResponse({
+        'graph': plot_data,
+        'pred': prediction_value,
+        'results_json': results_json
+    })

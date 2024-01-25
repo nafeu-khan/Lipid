@@ -13,7 +13,7 @@ import OperationsPanel from "../Components/OperationsPanel";
 import SelectComponentType from "../Components/SelectComponentType";
 import UploadFile from "../Components/UploadFile";
 import { changeActiveLipid, changeOperationID } from "../Slices/LipidSlice";
-
+import ActvspredGraph from "../Components/ActvspredGraph.jsx";
 // const data = JSON.parse(graph_data);
 // console.log(JSON.stringify(data["APC"]))
 
@@ -130,7 +130,7 @@ function Lipid() {
                 <div className="w-full h-full flex flex-col items-center p-2">
                   <h1 className="bg-violet-500 text-gray-100 mt-2 p-2 px-4 text-lg rounded shadow font-mono">
                     Prediction Value:{" "}
-                    <span className="text-white font-semibold">20.34</span>
+                    <span className="text-white font-semibold">{data.pred}</span>
                   </h1>
                   {data.graph ? (
                     <img
@@ -141,6 +141,7 @@ function Lipid() {
                   ) : (
                     <h1 className="mt-4">No predicted data found.</h1>
                   )}
+                <ActvspredGraph />
                 </div>
               )}
             </div>
@@ -152,3 +153,11 @@ function Lipid() {
 }
 
 export default Lipid;
+
+
+
+
+
+
+
+
