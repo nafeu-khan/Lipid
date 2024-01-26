@@ -48,7 +48,6 @@ function Lipid() {
     const updatedInputs = lipidInput.map((input, idx) =>
       idx === index ? { ...input, [field]: value } : { ...input }
     );
-
     // Update the state with the new array
     setLipidInput(updatedInputs);
   };
@@ -141,7 +140,14 @@ function Lipid() {
                   ) : (
                     <h1 className="mt-4">No predicted data found.</h1>
                   )}
-                <ActvspredGraph />
+                  {data.results_json?(
+                      <>
+                      <h1>Actual Vs Prediction of </h1>
+                      <ActvspredGraph />
+                      </>
+                  ):
+                  (<h1></h1>)
+                  }
                 </div>
               )}
             </div>

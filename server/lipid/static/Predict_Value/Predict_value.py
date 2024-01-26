@@ -199,6 +199,13 @@ def predict_value(data,df):
         'Actual': actual_values,
         'Predicted': predicted_values
     })
+    testTrain_df=pd.DataFrame({
+        'Train Losses':train_losses,
+        'Train r2_scores': train_r2_scores,
+        'Test Losses': test_losses,
+        'Test r2_scores': test_r2_scores
+    })
+    testTrain_df=testTrain_df.to_json(orient='records')
     results_json = results_df.to_json(orient='records')  # Convert DataFrame to JSON
     # Plotting loss and R² scores
     plt.figure(figsize=(15, 5))
@@ -322,5 +329,6 @@ def predict_value(data,df):
     return JsonResponse({
         'graph': plot_data,
         'pred': prediction_value,
-        'results_json': results_json
+        'results_json': results_json,
+        'testTrain_df':testTrain_df
     })
