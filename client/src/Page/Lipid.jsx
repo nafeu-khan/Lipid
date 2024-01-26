@@ -4,16 +4,14 @@ import React, { useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
-import ActualPredicted from "../Components/ActualPredicted";
-import ChartComponent from "../Components/ChartComponent";
-import GraphTable from "../Components/GraphTable";
 import Header from "../Components/Header";
 import LipidInputForm from "../Components/LipidInputForm";
+import MoleculeStructure from "../Components/MoleculeStructure.jsx";
 import OperationsPanel from "../Components/OperationsPanel";
+import PredictionKappa from "../Components/PredictionKappa.jsx";
 import SelectComponentType from "../Components/SelectComponentType";
 import UploadFile from "../Components/UploadFile";
 import { changeActiveLipid, changeOperationID } from "../Slices/LipidSlice";
-import ActvspredGraph from "../Components/ActvspredGraph.jsx";
 // const data = JSON.parse(graph_data);
 // console.log(JSON.stringify(data["APC"]))
 
@@ -48,6 +46,7 @@ function Lipid() {
     const updatedInputs = lipidInput.map((input, idx) =>
       idx === index ? { ...input, [field]: value } : { ...input }
     );
+
     // Update the state with the new array
     setLipidInput(updatedInputs);
   };
@@ -108,48 +107,14 @@ function Lipid() {
               <CircularProgress />
             </div>
           ) : (
-            <div className="w-full h-full grid place-items-center">
+            <div className="w-full h-full grid place-items-center overflow-y-auto px-2">
               {operationID === "0" && (
                 <h1 className="font-medium text-3xl mt-10">
                   Select an operation
                 </h1>
               )}
-              {operationID === "1" && (
-                <>
-                  <ActualPredicted />
-                  <div className="w-full h-full flex items-center">
-                    <ChartComponent graph_data={graph_data} />
-                    <div className={`${showTable ? "w-[600px] px-2" : "w-0"}`}>
-                      <GraphTable />
-                    </div>
-                  </div>
-                </>
-              )}
-              {operationID === "2" && (
-                <div className="w-full h-full flex flex-col items-center p-2">
-                  <h1 className="bg-violet-500 text-gray-100 mt-2 p-2 px-4 text-lg rounded shadow font-mono">
-                    Prediction Value:{" "}
-                    <span className="text-white font-semibold">{data.pred}</span>
-                  </h1>
-                  {data.graph ? (
-                    <img
-                      className="mt-8"
-                      src={`data:image/png;base64,${data.graph}`}
-                      alt=""
-                    />
-                  ) : (
-                    <h1 className="mt-4">No predicted data found.</h1>
-                  )}
-                  {data.results_json?(
-                      <>
-                      <h1>Actual Vs Prediction of </h1>
-                      <ActvspredGraph />
-                      </>
-                  ):
-                  (<h1></h1>)
-                  }
-                </div>
-              )}
+              {operationID === "1" && <MoleculeStructure />}
+              {operationID === "2" && <PredictionKappa />}
             </div>
           )}
         </div>
@@ -159,11 +124,3 @@ function Lipid() {
 }
 
 export default Lipid;
-
-
-
-
-
-
-
-

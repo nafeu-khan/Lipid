@@ -41,6 +41,7 @@ const OperationsPanel = () => {
   const dispatch = useDispatch();
   const operationID = useSelector((state) => state.lipid.operationID);
   const lipid = useSelector((state) => state.lipid.lipid);
+  const loading = useSelector((state) => state.lipid.loading);
 
   const handleNodeSelect = async (b) => {
     for (const val of lipid) {
@@ -59,7 +60,7 @@ const OperationsPanel = () => {
       <p className="font-medium text-gray-800/80 text-center underline">
         Operations
       </p>
-      <div className="mt-2">
+      <div className={`mt-2 ${loading && "pointer-events-none"}`}>
         <TreeView
           aria-label="controlled"
           selected={operationID}
