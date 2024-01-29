@@ -210,6 +210,7 @@ def predict_value(data,df):
     r2_df=r2_df.to_json(orient='records')
     loss_df=loss_df.to_json(orient='records')
     results_json = results_df.to_json(orient='records')  # Convert DataFrame to JSON
+
     # Plotting loss and R² scores
     plt.figure(figsize=(15, 5))
 
@@ -221,31 +222,28 @@ def predict_value(data,df):
     plt.ylabel('Loss')
     plt.title('Training and Test Loss per Epoch')
     plt.legend()
+    # Save the first plot in memory
+    buffer1 = BytesIO()
+    plt.savefig(buffer1, format='png')
+    plt.close()
+
     # Plotting R² score
-    plt.subplot(1, 2, 2)
+    plt.figure(figsize=(15, 5))
+    plt.subplot(1, 2, 1)
     plt.plot(train_r2_scores, label='Train R² Score')
     plt.plot(test_r2_scores, label='Test R² Score')
     plt.xlabel('Epoch')
     plt.ylabel('R² Score')
     plt.title('R² Score per Epoch')
     plt.legend()
-    plt.tight_layout()
-    # plt.show()
-    # # Plot R² scores
-    # plt.figure(figsize=(12, 6))
-    # plt.plot(train_r2_scores, label='Train R²')
-    # plt.plot(test_r2_scores, label='Test R²')
-    # plt.xlabel('Epoch')
-    # plt.ylabel('R² Score')
-    # plt.title('Train and Test R² Scores Over Epochs')
-    # plt.legend()
-    # Save the plot in memory
-    buffer = BytesIO()
-    plt.savefig(buffer, format='png')
+    # Save the second plot in memory
+    buffer2 = BytesIO()
+    plt.savefig(buffer2, format='png')
     plt.close()
-    # Encode the plot data to base64
-    plot_data = base64.b64encode(buffer.getvalue()).decode('utf-8')
 
+    # Encode the plot data to base64
+    plot_data1 = base64.b64encode(buffer1.getvalue()).decode('utf-8')
+    plot_data2 = base64.b64encode(buffer2.getvalue()).decode('utf-8')
 
     # Function to process a new molecule
     def process_new_molecule(new_molecule, feature_encodings, max_length):
@@ -330,9 +328,10 @@ def predict_value(data,df):
         # print("individual prediction for ", lipid_name, predictions)
         print(prediction_value)
     return JsonResponse({
-        'graph': plot_data,
+        'graph1': plot_data1,
+        'graph2': plot_data2,
         'pred': prediction_value,
-        'results_json': results_json,
+        'actualvspred': results_json,
         'loss_df':loss_df,
         'r2_df':r2_df
     })
