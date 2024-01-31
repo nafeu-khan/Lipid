@@ -22,19 +22,75 @@ from django.http import JsonResponse
 from io import BytesIO
 import base64
 
+from .gcn_model.src.train_model import train_model
 from .static.Predict_Value.Predict_value import predict_value
 from .static.gnn_molecule_edge_only import edge_pred
-
+from .gcn_model.src.extract_dataset import extract_dataset
 plt.switch_backend('agg')
 
-@api_view(['GET','POST'])
+
 @csrf_exempt
 # Create your views here.
+@api_view(['GET','POST'])
+def get_data(request):
+    # Accessing file data
+    adjacency_file = request.FILES.get('adjacencyFile')
+    node_feature_file = request.FILES.get('nodeFeatureFile')
+    # Accessing text and other data
+    adjacency_text = request.POST.get('adjacencyText')
+    node_feature_text = request.POST.get('nodeFeatureText')
+    type = request.POST.get('type')
+    compositions = request.POST.get('compositions')
+    data = request.POST.get('data')
+    print(compositions)
+    print("fja")
+    compositions = json.loads(compositions)
+    data = json.loads(data)
+    print(compositions["comp1"]["name"])
+    comp_name = compositions["comp1"]["name"]
+
+    # Specify the desired path to save the adjacency_file
+    current_directory = os.path.dirname(__file__)
+    save_path = os.path.join(current_directory, f'./gcn_model/data/TextFiles/Adjacency_Matrix/{comp_name} .txt')
+    # Save the adjacency_file to the specified path
+    with open(save_path, 'wb') as destination:
+        for chunk in adjacency_file.chunks():
+            destination.write(chunk)
+    save_path = os.path.join(current_directory,  f'./gcn_model/data/TextFiles/Node_Features/{comp_name}.txt')
+    # Save the adjacency_file to the specified path
+    with open(save_path, 'wb') as destination:
+        for chunk in node_feature_file.chunks():
+            destination.write(chunk)
+
+    json_data = {"Composition":comp_name,
+                 "N_water": data["Number of Water"],
+                 "Temperature (K)":  data["Temperature"],
+                 "N Lipids/Layer": data["Number of Lipid Per Layer"],
+                 "Avg Membrane Thickness": data["Membrane Thickness"],
+                 "Kappa (BW-DCF)":  data["Kappa BW DCF"],
+                 "Kappa (RSF)": data["Kappa RSF"]}
+    print(json_data)
+    # Convert the JSON data to a DataFrame
+    df_to_add = pd.DataFrame([json_data])
+
+    current_directory = os.path.dirname(__file__)
+    file_path = os.path.join(current_directory, './gcn_model/data/Merged_and_Sorted_Df.csv')
+    existing_df = pd.read_csv(file_path)
+    # Append new data to the existing DataFrame
+    updated_df = pd.concat([existing_df, df_to_add], ignore_index=True)
+    updated_df.to_csv(file_path)
+    extract_dataset()
+    return JsonResponse({'message': 'Data processed successfully'}, status=200)
+
+@api_view(['GET','POST'])
+def create_model(req):
+    return train_model()
+@api_view(['GET','POST'])
 def prediction(req):
     data=json.loads(req.body)
     # Load and preprocess the dataset
     current_directory = os.path.dirname(__file__)
-    file_path = os.path.join(current_directory, 'filtered_molecule_Edit.csv')
+    file_path = os.path.join(current_directory, 'final_dataset.csv')
     df = pd.read_csv(file_path)
     return predict_value(data,df)
 @api_view(['GET','POST'])

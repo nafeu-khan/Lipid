@@ -7,13 +7,7 @@ function UploadFile() {
       <p className="font-medium text-gray-800/80 underline text-center mb-4">
         Upload File
       </p>
-      <FileUploader
-        name="file"
-        types={["csv", "xlsx"]}
-        onDrop={(e) => console.log(e)}
-        onChange={(e) => console.log(e)}
-        classes="dndFile"
-      />
+      
     </div>
   );
 }

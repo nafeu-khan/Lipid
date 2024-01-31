@@ -43,6 +43,7 @@ export const getPredictions = createAsyncThunk(
         body: JSON.stringify(body),
       });
       const data = await res.json();
+
       return data;
       // return { data, mol_name };
     } catch (error) {
@@ -105,7 +106,13 @@ export const lipidSlice = createSlice({
     });
     builder.addCase(getPredictions.fulfilled, (state, { payload }) => {
       // TODO: change pred value while working with multiple component
-      state.data = { ...payload, pred: payload.pred[0][0] };
+
+      state.data = {
+        pred: payload.pred[0][0],
+        loss: { graph: payload.graph1, table: JSON.parse(payload.loss_df) },
+        r2: { graph: payload.graph2, table: JSON.parse(payload.r2_df) },
+        actualvspred: JSON.parse(payload.actualvspred),
+      };
       state.loading = false;
     });
     builder.addCase(getPredictions.rejected, (state) => {

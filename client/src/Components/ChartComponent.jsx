@@ -9,7 +9,6 @@ import { useLayoutEffect } from "react";
 // const data = JSON.parse(graph_data);
 
 function ChartComponent({ graph_data, id = "1" }) {
-  // console.log(graph_data);
   useLayoutEffect(() => {
     if (!graph_data) return;
     var root = am5.Root.new(`chartdiv${id}`);

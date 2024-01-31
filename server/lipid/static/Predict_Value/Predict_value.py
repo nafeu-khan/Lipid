@@ -38,7 +38,7 @@ def predict_value(data,df):
     # Standardizing numerical features
     scaler = StandardScaler()
     numerical_features = df[
-        ['N_lipids/layer', 'N_water', 'Lz_0, nm', 'Performance, us/day', 'Lx_mean, nm', 'Lz_mean', 'Area/lipid, nm^2',
+        ['N Lipids/Layer', 'N_water', 'Lz_0, nm', 'Performance, us/day', 'Lx_mean, nm', 'Lz_mean', 'Area/lipid, nm^2',
          'L/lipid, nm', 'Memb_thickness', 'Time_to_reach_kappa, ns', 'q0, nm-1', 't_decorr(q0), ns',
          'Kappa  gamma_CU (direct)', 'kappa  binning, kT', 'Kappa gamma/binning', 'Kappa_rsf']]
     numerical_features_scaled = scaler.fit_transform(numerical_features)
@@ -212,10 +212,10 @@ def predict_value(data,df):
     results_json = results_df.to_json(orient='records')  # Convert DataFrame to JSON
 
     # Plotting loss and R² scores
-    plt.figure(figsize=(15, 5))
+    plt.figure(figsize=(10, 5))
 
     # Plotting training and test loss
-    plt.subplot(1, 2, 1)
+    plt.subplot(1, 1, 1)
     plt.plot(train_losses, label='Train Loss')
     plt.plot(test_losses, label='Test Loss')
     plt.xlabel('Epoch')
@@ -228,8 +228,8 @@ def predict_value(data,df):
     plt.close()
 
     # Plotting R² score
-    plt.figure(figsize=(15, 5))
-    plt.subplot(1, 2, 1)
+    plt.figure(figsize=(10, 5))
+    plt.subplot(1, 1, 1)
     plt.plot(train_r2_scores, label='Train R² Score')
     plt.plot(test_r2_scores, label='Test R² Score')
     plt.xlabel('Epoch')
@@ -290,7 +290,7 @@ def predict_value(data,df):
     # file_path = os.path.join(current_directory, 'moleculesEDited.csv')
     # df = pd.read_csv(file_path)
     current_directory = os.path.dirname(__file__)
-    file_path = os.path.join(current_directory, '../../filtered_molecule_Edit.csv')
+    file_path = os.path.join(current_directory, '../../final_dataset.csv')
     df = pd.read_csv(file_path)
     pressed = int(data.get('issingle'))
     prediction_value = None

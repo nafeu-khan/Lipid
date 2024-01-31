@@ -11,6 +11,8 @@ function AgGridTable({ rowData }) {
       ? Object.keys(rowData[0]).map((val) => ({ field: val }))
       : [];
 
+      
+
   const defaultColDef = useMemo(
     () => ({
       filter: true, // Enable filtering on all columns

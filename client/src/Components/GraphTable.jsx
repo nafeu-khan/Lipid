@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import AgGridTable from "./AgGridTable";
 
 function GraphTable() {
-  const edges = useSelector((state) => state.lipid.data.edge_table);
+  const edges = useSelector((state) => state.structure.data.edge_table);
   const [rowData, setRowData] = useState([]);
 
   useEffect(() => {
