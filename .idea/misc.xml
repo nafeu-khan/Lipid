@@ -3,5 +3,5 @@
   <component name="Black">
     <option name="sdkName" value="Python 3.11 (MatFlowTest)" />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.9 (venv) (30)" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="mf_backend" project-jdk-type="Python SDK" />
 </project>
