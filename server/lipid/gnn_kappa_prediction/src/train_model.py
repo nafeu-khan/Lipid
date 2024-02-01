@@ -1,4 +1,6 @@
+import base64
 import os
+from io import BytesIO
 
 import numpy as np
 import pandas as pd
@@ -11,6 +13,24 @@ from torch_geometric.nn import GCNConv
 import torch.nn.functional as F
 import ast
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+
+
+class GCNPredictor(torch.nn.Module):
+    def __init__(self, input_features, hidden_features):
+        super(GCNPredictor, self).__init__()
+        self.conv1 = GCNConv(input_features, hidden_features)
+        self.conv2 = GCNConv(hidden_features, hidden_features)
+        self.fc = torch.nn.Linear(hidden_features, 1)  # Output one value
+
+    def forward(self, data):
+        x, edge_index, batch = data.x, data.edge_index, data.batch
+        x = self.conv1(x, edge_index)
+        x = F.relu(x)
+        x = self.conv2(x, edge_index)
+        x = torch_geometric.nn.global_mean_pool(x, batch)  # Pooling
+        x = self.fc(x)
+        return x.squeeze()  # Ensure output is 1D
+
 
 def train_model():
 # Load the dataset
@@ -121,22 +141,6 @@ def train_model():
     val_loader = DataLoader(val_data, batch_size=32, shuffle=False)
 
     # Define the GCN model
-    class GCNPredictor(torch.nn.Module):
-        def __init__(self, input_features, hidden_features):
-            super(GCNPredictor, self).__init__()
-            self.conv1 = GCNConv(input_features, hidden_features)
-            self.conv2 = GCNConv(hidden_features, hidden_features)
-            self.fc = torch.nn.Linear(hidden_features, 1)  # Output one value
-
-        def forward(self, data):
-            x, edge_index, batch = data.x, data.edge_index, data.batch
-            x = self.conv1(x, edge_index)
-            x = F.relu(x)
-            x = self.conv2(x, edge_index)
-            x = torch_geometric.nn.global_mean_pool(x, batch)  # Pooling
-            x = self.fc(x)
-            return x.squeeze()  # Ensure output is 1D
-
     # Adjust the model instantiation accordingly
 
     # Create model instance, optimizer, and loss function
@@ -215,3 +219,16 @@ def train_model():
     plt.title('Training and Validation Loss')
     plt.show()
 
+    buffer = BytesIO()
+    plt.savefig(buffer, format='png')
+    plt.close()
+    plot_data = base64.b64encode(buffer.getvalue()).decode('utf-8')
+    result_json = {
+        'Mean Squared Error': f'{mse:.4f}',
+        'Root Mean Squared Error': f'{rmse:.4f}',
+        'Mean Absolute Error': f'{mae:.4f}',
+        'R-squared': f'{r2:.4f}',
+        'graph':plot_data
+    }
+
+    return result_json
