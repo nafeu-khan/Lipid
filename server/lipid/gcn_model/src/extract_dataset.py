@@ -2,15 +2,28 @@ import re
 import pandas as pd
 import os
 
-node_feature_dir = '../data/TextFiles/Node_Features/'  # Replace with the actual directory path
-adjacency_matrix_dir = '../data/TextFiles/Adjacency_Matrix/'  # Replace with the actual directory path
 current_directory = os.path.dirname(__file__)
+node_feature_dir= os.path.join(current_directory, '../data/TextFiles/Node_Features/' )
+adjacency_matrix_dir = os.path.join(current_directory, '../data/TextFiles/Adjacency_Matrix/')
 file_path = os.path.join(current_directory, '../data/Merged_and_Sorted_Df.csv')
-df = pd.read_csv(file_path)
-def extract_dataset():
-    df['Node Features'] = None
-    df['Edge List'] = None
-    df['Graph-Level Features']=None
+old_df = pd.read_csv(file_path)
+
+def extract_dataset(df):
+    # Create a new DataFrame with the same index as the existing DataFrame
+    new_columns = ['Node Features', 'Edge List', 'Graph-Level Features']
+    new_df = pd.DataFrame(columns=new_columns)
+
+    # Fill the new columns with None values
+    new_df['Node Features'] = None
+    new_df['Edge List'] = None
+    new_df['Graph-Level Features'] = None
+    df = pd.concat([old_df, new_df], axis=1)
+
+    # df['Node Features'] = None
+    # df['Edge List'] = None
+    # df['Graph-Level Features']=None
+    print("init df")
+    print(df)
     for index, row in df.iterrows():
         names = extract_composition_names(row['Composition'])
         node_features = []
@@ -23,13 +36,14 @@ def extract_dataset():
             df.drop(index, inplace=True)
             continue
         percentages=extract_percentages(row['Composition'])
-
+        print(node_features)
         df.at[index, 'Node Features'] = list(set(node_features))
         df.at[index, 'Edge List'] = sort_tuple(edge_features)
         df.at[index,'Graph-Level Features']= percentages
     current_directory = os.path.dirname(__file__)
     file_path = os.path.join(current_directory, '../data/Final_Dataset_for_Model_Train.csv')
-    df.to_csv(file_path)
+    print(df.tail())
+    df.to_csv(file_path,index=False)
 
 def process_nodes(lipid_name):
     try:
@@ -42,6 +56,7 @@ def process_nodes(lipid_name):
         # Define the path to your adjacency matrix data file
         adjacency_matrix_file_path = os.path.join(adjacency_matrix_dir, f"{lipid_name} .txt")
     except Exception as e:
+        print("error")
         return ([], [])
     # Read the adjacency matrix data into a DataFrame
     adjacency_df = pd.read_csv(adjacency_matrix_file_path, sep='\t', index_col=0)

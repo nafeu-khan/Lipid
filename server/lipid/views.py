@@ -42,11 +42,8 @@ def get_data(request):
     type = request.POST.get('type')
     compositions = request.POST.get('compositions')
     data = request.POST.get('data')
-    print(compositions)
-    print("fja")
     compositions = json.loads(compositions)
     data = json.loads(data)
-    print(compositions["comp1"]["name"])
     comp_name = compositions["comp1"]["name"]
 
     # Specify the desired path to save the adjacency_file
@@ -77,9 +74,13 @@ def get_data(request):
     file_path = os.path.join(current_directory, './gcn_model/data/Merged_and_Sorted_Df.csv')
     existing_df = pd.read_csv(file_path)
     # Append new data to the existing DataFrame
-    updated_df = pd.concat([existing_df, df_to_add], ignore_index=True)
-    updated_df.to_csv(file_path)
-    extract_dataset()
+    Merged_and_Sorted_Df = pd.concat([existing_df, df_to_add], ignore_index=True)
+    # print("\nChanges:")
+    # print(Merged_and_Sorted_Df[~existing_df.isin(Merged_and_Sorted_Df)].dropna())
+
+    Merged_and_Sorted_Df.to_csv(file_path,index=False)
+    print(Merged_and_Sorted_Df.tail())
+    extract_dataset(Merged_and_Sorted_Df)
     return JsonResponse({'message': 'Data processed successfully'}, status=200)
 
 @api_view(['GET','POST'])
