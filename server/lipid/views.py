@@ -23,6 +23,8 @@ from io import BytesIO
 import base64
 
 from .gcn_model.src.train_model import train_model
+from .gcn_model.src.predict_model import predict_model
+
 from .static.Predict_Value.Predict_value import predict_value
 from .static.gnn_molecule_edge_only import edge_pred
 from .gcn_model.src.extract_dataset import extract_dataset
@@ -87,11 +89,17 @@ def get_data(request):
     Merged_and_Sorted_Df.to_csv(file_path,index=False)
     print(Merged_and_Sorted_Df.tail())
     extract_dataset(Merged_and_Sorted_Df)
-    return JsonResponse({'message': 'Data processed successfully'}, status=200)
+    return JsonResponse({'result_json':train_model(),
+                        'prediction':predict_model(comp_name_format,data,type),
+                         })
 
 @api_view(['GET','POST'])
 def create_model(req):
     return train_model()
+@api_view(['GET','POST'])
+def predict_model(req):
+    data=json.loads(req.body)
+    predict_model(data)
 @api_view(['GET','POST'])
 def prediction(req):
     data=json.loads(req.body)

@@ -308,15 +308,12 @@ function Prediction() {
  */
 
 const initialDataState = () => ({
-  "Number of Water": "",
-  Salt: "",
-  Temperature: "",
-  Pressure: "",
+  "Number of Water": 2915,
+  Salt: 0.15,
+  Temperature: 310,
+  Pressure: 1,
   "Number of Lipid Per Layer": "",
   "Membrane Thickness": "",
-  "Kappa KT(q^-4 + b)": "",
-  "Kappa Binning (KT)": "",
-  "Kappa Gamma / Binning": "",
   "Kappa BW DCF": "",
   "Kappa RSF": "",
 });
