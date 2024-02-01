@@ -17,7 +17,7 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 def train_model():
     # Load the dataset
     current_directory = os.path.dirname(__file__)
-    file_path = os.path.join(current_directory,"../data/Final_Dataset_for_Model_Train.csv/")
+    file_path = os.path.join(current_directory,"../data/Final_Dataset_for_Model_Train.csv")
     data = pd.read_csv(file_path)
 
     # Function to convert string representations to Python objects
@@ -106,8 +106,12 @@ def train_model():
     #     print("'D2B' is not in the node_map. You might need to update your node_map or retrain the model.")
 
     # After creating feature_map and node_map during training
-    torch.save(feature_map, '../models/feature_map.pth')
-    torch.save(node_map, '../models/node_map.pth')
+
+    current_directory = os.path.dirname(__file__)
+    file_path = os.path.join(current_directory,'../models/feature_map.pth' )
+    torch.save(feature_map, file_path)
+    file_path = os.path.join(current_directory,'../models/node_map.pth' )
+    torch.save(node_map, file_path)
 
     # Split the data into training and validation sets
     train_data = data_list[:int(0.8 * len(data_list))]
@@ -149,6 +153,7 @@ def train_model():
             out = model(data)
             loss = loss_fn(out, data.y)
             loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1)  # Apply gradient clipping
             optimizer.step()
 
         # Evaluate on validation set
@@ -159,12 +164,15 @@ def train_model():
                 out = model(data)
                 # print(out.items())
                 val_loss += loss_fn(out, data.y).item()
+            # print(len(val_loader), val_loader,"val loss= ",val_loss)
             val_loss /= len(val_loader)
         print(f"Epoch {epoch+1}, Validation Loss: {val_loss:.4f}")
 
     # After your training loop
     # Assuming 'model' is your trained model instance
-    torch.save(model, '../models/gcn_complete_model.pth')
+    current_directory = os.path.dirname(__file__)
+    file_path = os.path.join(current_directory, '../models/gcn_complete_model.pth')
+    torch.save(model, file_path)
     # Assume feature_map and node_map are created during training
 
     def evaluate_model(model, loader):

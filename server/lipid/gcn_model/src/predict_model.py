@@ -1,5 +1,7 @@
+import os
 import re
 
+import pandas as pd
 import torch
 import ast
 
@@ -80,32 +82,48 @@ def predict_model(composition,data,type):
         percentages = re.findall(pattern, composition_str)
         return [float(p)/100 for p in percentages]
 
-    # Example input data
-    composition = composition
-    n_lipids_layer = data["Number of Lipid Per Layer"],
-    n_water = data["Number of Water"],
-    temperature_k = data["Temperature"],
-    avg_membrane_thickness =  data["Membrane Thickness"],
-    node_features_str = "[('D2A', 'C3'), ('D2B', 'C3'), ('GL2', 'Na'), ('NC3', 'Q0'), ('PO4', 'Qa'), ('C3A', 'C1'), ('C1B', 'C1'), ('C3B', 'C1'), ('GL1', 'Na'), ('C1A', 'C1')]"
-    edge_list_str = "[('C1A', 'D2A'), ('GL1', 'PO4'), ('C3B', 'D2B'), ('C3A', 'D2A'), ('GL1', 'GL2'), ('C1B', 'D2B'), ('NC3', 'PO4'), ('C1B', 'GL2'), ('C1A', 'GL1')]"
-    graph_features_str = extract_percentages(composition)
+    current_directory = os.path.dirname(__file__)
+    file_path = os.path.join(current_directory, '../data/Final_Dataset_for_Model_Train.csv')
+    df = pd.read_csv(file_path)
 
+    if type=='single':
+        # Example input data
+        composition = composition
+        n_lipids_layer = data["Number of Lipid Per Layer"]
+        n_water = data["Number of Water"]
+        temperature_k = data["Temperature"]
+        avg_membrane_thickness =  data["Membrane Thickness"]
+        # node_features_str = "[('D2A', 'C3'), ('D2B', 'C3'), ('GL2', 'Na'), ('NC3', 'Q0'), ('PO4', 'Qa'), ('C3A', 'C1'), ('C1B', 'C1'), ('C3B', 'C1'), ('GL1', 'Na'), ('C1A', 'C1')]"
+        # edge_list_str = "[('C1A', 'D2A'), ('GL1', 'PO4'), ('C3B', 'D2B'), ('C3A', 'D2A'), ('GL1', 'GL2'), ('C1B', 'D2B'), ('NC3', 'PO4'), ('C1B', 'GL2'), ('C1A', 'GL1')]"
+        graph_features_str = extract_percentages(composition)
+        # Assuming 'Node Features' and 'Edge List' are columns in your DataFrame df
+        node_features = df[df['Composition'] == composition]['Node Features'].values[0]
+        edge_list = df[df['Composition'] == composition]['Edge List'].values[0]
+        # Convert the string representations to actual lists using ast.literal_eval
+        node_features_str = ast.literal_eval(node_features)
+        edge_list_str = ast.literal_eval(edge_list)
 
-    # Predicting Kappa q^-4
-    predicted_kappa_q_4 = predict_kappa_q_4(model, node_features_str, edge_list_str, graph_features_str)
-    print("Predicted Kappa q^-4:", predicted_kappa_q_4)
+        # Predicting Kappa q^-4
+        predicted_kappa_q_4 = predict_kappa_q_4(model, node_features_str, edge_list_str, graph_features_str)
+        print("Predicted Kappa q^-4:", predicted_kappa_q_4)
 
+    else:
+        composition = composition
+        n_lipids_layer = data["Number of Lipid Per Layer"]
+        n_water = data["Number of Water"]
+        temperature_k = data["Temperature"]
+        avg_membrane_thickness = data["Membrane Thickness"]
+        # node_features_str = "[('D2A', 'C3'), ('GL2', 'Na'), ('NC3', 'Q0'), ('PO4', 'Qa'), ('C3A', 'C1'), ('C1B', 'C1'), ('C4A', 'C1'), ('C2B', 'C1'), ('NH3', 'Qd'), ('C4B', 'C1'), ('C3B', 'C1'), ('GL1', 'Na'), ('C1A', 'C1')]"
+        # edge_list_str = "[('C1A', 'D2A'), ('NH3', 'PO4'), ('GL1', 'PO4'), ('C3A', 'D2A'), ('C3B', 'C4B'), ('GL1', 'GL2'), ('C1B', 'C2B'), ('C2B', 'C3B'), ('NC3', 'PO4'), ('C1B', 'GL2'), ('C1A', 'GL1'), ('C3A', 'C4A')]"
+        graph_features_str = extract_percentages(composition)
+        # Assuming 'Node Features' and 'Edge List' are columns in your DataFrame df
+        node_features = df[df['Composition'] == composition]['Node Features'].values[0]
+        edge_list = df[df['Composition'] == composition]['Edge List'].values[0]
+        # Convert the string representations to actual lists using ast.literal_eval
+        node_features_str = ast.literal_eval(node_features)
+        edge_list_str = ast.literal_eval(edge_list)
 
-    composition = "85% POPC; 15% POPE"
-    n_lipids_layer = 2915
-    n_water = 195599
-    temperature_k = 310
-    avg_membrane_thickness = 3.91
-    node_features_str = "[('D2A', 'C3'), ('GL2', 'Na'), ('NC3', 'Q0'), ('PO4', 'Qa'), ('C3A', 'C1'), ('C1B', 'C1'), ('C4A', 'C1'), ('C2B', 'C1'), ('NH3', 'Qd'), ('C4B', 'C1'), ('C3B', 'C1'), ('GL1', 'Na'), ('C1A', 'C1')]"
-    edge_list_str = "[('C1A', 'D2A'), ('NH3', 'PO4'), ('GL1', 'PO4'), ('C3A', 'D2A'), ('C3B', 'C4B'), ('GL1', 'GL2'), ('C1B', 'C2B'), ('C2B', 'C3B'), ('NC3', 'PO4'), ('C1B', 'GL2'), ('C1A', 'GL1'), ('C3A', 'C4A')]"
-    graph_features_str = extract_percentages(composition)
-
-
-    # Predicting Kappa q^-4
-    predicted_kappa_q_4 = predict_kappa_q_4(model, node_features_str, edge_list_str, graph_features_str)
-    print("Predicted Kappa q^-4:", predicted_kappa_q_4)
+        # Predicting Kappa q^-4
+        predicted_kappa_q_4 = predict_kappa_q_4(model, node_features_str, edge_list_str, graph_features_str)
+        print("Predicted Kappa q^-4:", predicted_kappa_q_4)
+    return predicted_kappa_q_4
