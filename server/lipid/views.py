@@ -40,11 +40,17 @@ def get_data(request):
     adjacency_text = request.POST.get('adjacencyText')
     node_feature_text = request.POST.get('nodeFeatureText')
     type = request.POST.get('type')
+    print(type)
     compositions = request.POST.get('compositions')
     data = request.POST.get('data')
     compositions = json.loads(compositions)
+    print(compositions)
     data = json.loads(data)
     comp_name = compositions["comp1"]["name"]
+    if type=='single':
+        comp_name_format=f'{compositions["comp1"]["percentage"]}% {compositions["comp1"]["name"]}'
+    else:
+        comp_name_format = f'{compositions["comp1"]["percentage"]}% {compositions["comp1"]["name"]},{compositions["comp2"]["percentage"]}% {compositions["comp2"]["name"]}'
 
     # Specify the desired path to save the adjacency_file
     current_directory = os.path.dirname(__file__)
@@ -59,7 +65,7 @@ def get_data(request):
         for chunk in node_feature_file.chunks():
             destination.write(chunk)
 
-    json_data = {"Composition":comp_name,
+    json_data = {"Composition":comp_name_format,
                  "N_water": data["Number of Water"],
                  "Temperature (K)":  data["Temperature"],
                  "N Lipids/Layer": data["Number of Lipid Per Layer"],

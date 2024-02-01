@@ -5,8 +5,8 @@ import os
 current_directory = os.path.dirname(__file__)
 node_feature_dir= os.path.join(current_directory, '../data/TextFiles/Node_Features/' )
 adjacency_matrix_dir = os.path.join(current_directory, '../data/TextFiles/Adjacency_Matrix/')
-file_path = os.path.join(current_directory, '../data/Merged_and_Sorted_Df.csv')
-old_df = pd.read_csv(file_path)
+# file_path = os.path.join(current_directory, '../data/Merged_and_Sorted_Df.csv')
+# old_df = pd.read_csv(file_path)
 
 def extract_dataset(df):
     # Create a new DataFrame with the same index as the existing DataFrame
@@ -17,7 +17,7 @@ def extract_dataset(df):
     new_df['Node Features'] = None
     new_df['Edge List'] = None
     new_df['Graph-Level Features'] = None
-    df = pd.concat([old_df, new_df], axis=1)
+    df = pd.concat([df, new_df], axis=1)
 
     # df['Node Features'] = None
     # df['Edge List'] = None
@@ -36,7 +36,6 @@ def extract_dataset(df):
             df.drop(index, inplace=True)
             continue
         percentages=extract_percentages(row['Composition'])
-        print(node_features)
         df.at[index, 'Node Features'] = list(set(node_features))
         df.at[index, 'Edge List'] = sort_tuple(edge_features)
         df.at[index,'Graph-Level Features']= percentages
@@ -48,7 +47,7 @@ def extract_dataset(df):
 def process_nodes(lipid_name):
     try:
         # Define the path to your node feature matrix data file
-        node_feature_file_path = os.path.join(node_feature_dir, lipid_name + '.txt')
+        node_feature_file_path = os.path.join(node_feature_dir, f"{lipid_name}.txt")
 
         # Read the node feature matrix data into a DataFrame
         node_feature_df = pd.read_csv(node_feature_file_path, sep='\t', index_col=0)
