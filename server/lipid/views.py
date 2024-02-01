@@ -22,12 +22,8 @@ from django.http import JsonResponse
 from io import BytesIO
 import base64
 
-from .gcn_model.src.train_model import train_model
-from .gcn_model.src.predict_model import predict_model
-
 from .static.Predict_Value.Predict_value import predict_value
 from .static.gnn_molecule_edge_only import edge_pred
-from .gcn_model.src.extract_dataset import extract_dataset
 from .temp import make_dataset
 
 plt.switch_backend('agg')
@@ -42,7 +38,8 @@ def get_data(request):
 
 @api_view(['GET','POST'])
 def create_model(req):
-    return train_model()
+    return
+    # return train_model()
 @api_view(['GET','POST'])
 def predict_model(req):
     data=json.loads(req.body)

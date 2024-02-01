@@ -22,12 +22,12 @@ from django.http import JsonResponse
 from io import BytesIO
 import base64
 
-from .gcn_model.src.train_model import train_model
-from .gcn_model.src.predict_model import predict_model
+from .gnn_kappa_prediction.src.train_model import train_model
+# from .gnn_kappa_prediction.src.predict_model import predict_model
 
 from .static.Predict_Value.Predict_value import predict_value
 from .static.gnn_molecule_edge_only import edge_pred
-from .gcn_model.src.extract_dataset import extract_dataset
+from .gnn_kappa_prediction.src.extract_dataset import extract_dataset
 plt.switch_backend('agg')
 
 
@@ -71,7 +71,6 @@ def make_dataset(request):
                  "Avg Membrane Thickness": data["Membrane Thickness"],
                  "Kappa (BW-DCF)":  data["Kappa BW DCF"],
                  "Kappa (RSF)": data["Kappa RSF"]}
-    print(json_data)
     # Convert the JSON data to a DataFrame
     df_to_add = pd.DataFrame([json_data])
 
@@ -86,6 +85,9 @@ def make_dataset(request):
     Merged_and_Sorted_Df.to_csv(file_path,index=False)
     print(Merged_and_Sorted_Df.tail())
     extract_dataset(Merged_and_Sorted_Df)
-    return JsonResponse({'result_json': train_model(),
-                         'prediction': predict_model(comp_name_format, data, type),
-                         })
+
+    train_model()
+
+    # return JsonResponse({'result_json': train_model(),
+    #                      # 'prediction': predict_model(comp_name_format, data, type),
+    #                      })
