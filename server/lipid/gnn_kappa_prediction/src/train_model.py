@@ -31,27 +31,30 @@ class GCNPredictor(torch.nn.Module):
         x = self.fc(x)
         return x.squeeze()  # Ensure output is 1D
 
+# Function to convert string representations to Python objects
+
+def safe_ast_literal_eval(s):
+    try:
+        return ast.literal_eval(s)
+    except ValueError:
+        return s
+
+# Function to encode string features as numerical values
+def encode_features(features, feature_map):
+    encoded_features = []
+    for feature in features:
+        encoded_feature = [feature_map.get(item, len(feature_map)) for item in feature]
+        feature_map.update({item: i for i, item in enumerate(feature_map, start=len(feature_map)) if item not in feature_map})
+        encoded_features.append(encoded_feature)
+    return encoded_features
 
 def train_model():
 # Load the dataset
     current_directory = os.path.dirname(__file__)
     file_path = os.path.join(current_directory, "../data/Final_Dataset_for_Model_Train.csv")
     data = pd.read_csv(file_path)
-    # Function to convert string representations to Python objects
-    def safe_ast_literal_eval(s):
-        try:
-            return ast.literal_eval(s)
-        except ValueError:
-            return s
 
-    # Function to encode string features as numerical values
-    def encode_features(features, feature_map):
-        encoded_features = []
-        for feature in features:
-            encoded_feature = [feature_map.get(item, len(feature_map)) for item in feature]
-            feature_map.update({item: i for i, item in enumerate(feature_map, start=len(feature_map)) if item not in feature_map})
-            encoded_features.append(encoded_feature)
-        return encoded_features
+
 
 
     standard_feature_size = 1  # Set this based on your data analysis
@@ -86,12 +89,24 @@ def train_model():
             unique_nodes.update(feature)
         return list(unique_nodes)
 
+
+    other_columns = [
+        'N Lipids/Layer',
+        'N_water',
+        'Temperature (K)',
+        'Avg Membrane Thickness',
+        'Kappa (BW-DCF)',
+        'Kappa (RSF)']
+
     data_list = []
     for _, row in data.iterrows():
         # Convert string representations to Python objects
         node_features_list = safe_ast_literal_eval(row['Node Features'])
         edge_list = safe_ast_literal_eval(row['Edge List'])
         graph_features = safe_ast_literal_eval(row['Graph-Level Features'])
+
+        for r in other_columns:
+            graph_features.append(row[r])
 
         # Create a mapping for all unique nodes in both node features and edge list
         for edge in edge_list:
@@ -154,7 +169,8 @@ def train_model():
     train_losses = []
     val_losses = []
 
-    for epoch in range(50):
+
+    for epoch in range(3000):
         model.train()
         total_train_loss = 0.0
         for data in train_loader:
@@ -182,8 +198,13 @@ def train_model():
 
     # After your training loop
     # Assuming 'model' is your trained model instance
-    torch.save(model, os.path.join(current_directory,'../models/gcn_complete_model.pth'))
+
+    torch.save(model.state_dict(), os.path.join(current_directory, '../models/gcn_complete_model.pth'))
     # Assume feature_map and node_map are created during training
+    loss_df = pd.DataFrame({
+        'Train Losses': train_losses,
+        'Test Losses': val_losses,
+    })
 
     def evaluate_model(model, loader):
         model.eval()
@@ -211,24 +232,54 @@ def train_model():
     print(f'R-squared: {r2:.4f}')
 
     plt.figure(figsize=(10, 5))
-    plt.plot(range(1, len(train_losses) + 1), train_losses, label='Training Loss')
-    plt.plot(range(1, len(val_losses) + 1), val_losses, label='Validation Loss')
+    plt.plot(range(1, len(train_losses) + 1), train_losses, label='Train Loss')
+    plt.plot(range(1, len(val_losses) + 1), val_losses, label='Test Loss')
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
     plt.legend()
-    plt.title('Training and Validation Loss')
-    plt.show()
+    plt.title('Train vs Test Loss')
+
+    buffer = BytesIO()
+    plt.savefig(buffer, format='png')
+    plt.close()
+    plot_data1 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+
+    predictions = np.array(predictions).flatten()  # Flatten in case the predictions are in a 2D array
+    actuals = np.array(actuals).flatten()  # Flatten in case the actuals are in a 2D array
+
+    # Plotting
+
+
+    observations = np.arange(len(actuals))  # Create an array for the x-axis
+
+    plt.figure(figsize=(10, 6))
+    plt.scatter(observations, actuals, color='blue', alpha=0.5, label='Actual')
+    plt.scatter(observations, predictions, color='red', alpha=0.5, label='Predicted')
+    plt.xlabel('Observations')
+    plt.ylabel('Values')  # Replace with the name of the variable you are predicting
+    plt.title('Actual and Predicted Values')
+    plt.legend()
+
+    df_summary = pd.DataFrame({"Actual Values": actuals, "Predicted Values": predictions})
 
     buffer = BytesIO()
     plt.savefig(buffer, format='png')
     plt.close()
     plot_data = base64.b64encode(buffer.getvalue()).decode('utf-8')
+
     result_json = {
         'Mean Squared Error': f'{mse:.4f}',
         'Root Mean Squared Error': f'{rmse:.4f}',
         'Mean Absolute Error': f'{mae:.4f}',
         'R-squared': f'{r2:.4f}',
-        'graph':plot_data
+        "loss": {
+            'graph':plot_data1,
+            'table': loss_df.to_json(orient='records')
+        },
+        'actualvspred': {
+            'graph': plot_data,
+            'table': df_summary.to_json(orient='records')
+        }
     }
 
     return result_json

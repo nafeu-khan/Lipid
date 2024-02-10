@@ -22,6 +22,7 @@ from django.http import JsonResponse
 from io import BytesIO
 import base64
 
+from .gnn_kappa_prediction.src.predict_model import predict_model as pm
 from .gnn_kappa_prediction.src.train_model import train_model
 from .static.Predict_Value.Predict_value import predict_value
 from .static.gnn_molecule_edge_only import edge_pred
@@ -34,13 +35,16 @@ plt.switch_backend('agg')
 # Create your views here.
 @api_view(['GET','POST'])
 def get_data(request):
-    return make_dataset(request)
-
+    return JsonResponse(pm(request))
 
 @api_view(['GET','POST'])
 def create_model(req):
     # return
     return train_model()
+@api_view(['GET','POST'])
+def evaluation(request):
+    return JsonResponse(train_model())
+
 @api_view(['GET','POST'])
 def predict_model(req):
     data=json.loads(req.body)

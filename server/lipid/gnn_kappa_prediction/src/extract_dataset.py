@@ -8,41 +8,40 @@ adjacency_matrix_dir = os.path.join(current_directory, '../data/TextFiles/Adjace
 # file_path = os.path.join(current_directory, '../data/Merged_and_Sorted_Df.csv')
 # old_df = pd.read_csv(file_path)
 
-def extract_dataset(df):
-    # Create a new DataFrame with the same index as the existing DataFrame
-    new_columns = ['Node Features', 'Edge List', 'Graph-Level Features']
-    new_df = pd.DataFrame(columns=new_columns)
+def extract_dataset():
 
-    # Fill the new columns with None values
-    new_df['Node Features'] = None
-    new_df['Edge List'] = None
-    new_df['Graph-Level Features'] = None
-    df = pd.concat([df, new_df], axis=1)
 
-    # df['Node Features'] = None
-    # df['Edge List'] = None
-    # df['Graph-Level Features']=None
+    current_directory = os.path.dirname(__file__)
+    file_path = os.path.join(current_directory, '../data/Merged_and_Sorted_Df.csv')
+    df = pd.read_csv(file_path)
+
+    df['Node Features'] = None
+    df['Edge List'] = None
+    df['Graph-Level Features']=None
+
     print("init df")
     print(df)
     for index, row in df.iterrows():
         names = extract_composition_names(row['Composition'])
         node_features = []
         edge_features = []
+
         for name in names:
             data = process_nodes(name)
             node_features.extend(data[0])  # Assuming data[0] is a list of node features
             edge_features.extend(data[1])  # Assuming data[1] is a list of edge features
-        if len(node_features)==0:
+        if len(node_features) == 0:
             df.drop(index, inplace=True)
             continue
-        percentages=extract_percentages(row['Composition'])
+
+        percentages = extract_percentages(row['Composition'])
+
         df.at[index, 'Node Features'] = list(set(node_features))
         df.at[index, 'Edge List'] = sort_tuple(edge_features)
-        df.at[index,'Graph-Level Features']= percentages
+        df.at[index, 'Graph-Level Features'] = percentages
     current_directory = os.path.dirname(__file__)
     file_path = os.path.join(current_directory, '../data/Final_Dataset_for_Model_Train.csv')
-    print(df.tail())
-    df.to_csv(file_path,index=False)
+    df.to_csv(file_path)
 
 def process_nodes(lipid_name):
     try:
