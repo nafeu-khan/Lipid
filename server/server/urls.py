@@ -23,10 +23,13 @@ from lipid.views import pred_edge
 
 from lipid.views import get_data
 
+from lipid.views import evaluation
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('prediction/',prediction),
     path('edge_pred/',pred_edge),
-    path('test/', get_data)
+    path('test/', get_data),
+    path('eval/',evaluation)
 
 ]

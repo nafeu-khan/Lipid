@@ -29,7 +29,7 @@ const SelectCompositionType = ({ type, setType, setLipidInput }) => {
         }}
         options={[
           { value: "single", label: "Single" },
-          { value: "multiple", label: "Multiple" },
+          // { value: "multiple", label: "Multiple" },
         ]}
       />
     </div>

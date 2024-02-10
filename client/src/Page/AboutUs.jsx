@@ -13,27 +13,20 @@ function AboutUs() {
             Lipid Membrane
           </h2>
         </div>
-        <p className="font-mono text-gray-700/90">
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Praesentium,
-          quos tenetur! Debitis eos assumenda autem incidunt officia corrupti
-          quis iste perspiciatis earum, reiciendis, nulla, ut quae tempora sequi
-          magnam voluptatem culpa amet deserunt laudantium reprehenderit!
-          Voluptatem pariatur officiis at quae?
-        </p>
-        <p className="text-sm mt-4 text-gray-700/80">
+        <p className="font-mono text-gray-700/90"></p>
+        {/* <p className="text-sm mt-4 text-gray-700/80">
           {" "}
           <span className="font-medium text-gray-800 underline mr-1.5">
             Contact us:{" "}
           </span>{" "}
-          test@test.com
-        </p>
-        <p className="text-sm mt-1 text-gray-700/80">
+        </p> */}
+        {/* <p className="text-sm mt-1 text-gray-700/80">
           {" "}
           <span className="font-medium text-gray-800 underline mr-1.5">
             Mobile:{" "}
           </span>{" "}
-          +880123456789
-        </p>
+          
+        </p> */}
       </div>
     </div>
   );
