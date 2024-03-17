@@ -5,7 +5,8 @@ import { styled } from "@mui/material/styles";
 import { TreeView } from "@mui/x-tree-view";
 import { TreeItem, treeItemClasses } from "@mui/x-tree-view/TreeItem";
 import { useDispatch, useSelector } from "react-redux";
-import { evaluateModel } from "../Slices/EvaluationSlice";
+import { evaluateModel, setEvalData } from "../Slices/EvaluationSlice";
+import { useEffect } from "react";
 
 const StyledTreeItemRoot = styled(TreeItem)(({ theme }) => ({
   color: theme.palette.text.secondary,
@@ -34,6 +35,15 @@ const StyledTreeItemRoot = styled(TreeItem)(({ theme }) => ({
 const OperationsPanel = ({ setOperationID, operationID }) => {
   const { data, loading } = useSelector((state) => state.evaluation);
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    let dd = localStorage.getItem("data");
+
+    if (dd) {
+      dd = JSON.parse(dd);
+      dispatch(setEvalData(dd));
+    }
+  }, []);
 
   const handleNodeSelect = async (b) => {
     setOperationID(b);

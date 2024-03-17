@@ -4,34 +4,34 @@ from io import BytesIO
 
 import numpy as np
 import pandas as pd
-import torch
-import torch_geometric
 from matplotlib import pyplot as plt
 from torch_geometric.data import Data
 from torch_geometric.loader import DataLoader
-from torch_geometric.nn import GCNConv
-import torch.nn.functional as F
 import ast
+import matplotlib
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+matplotlib.use('Agg')
+plt.switch_backend('agg')
 
 
-class GCNPredictor(torch.nn.Module):
+import torch
+import torch.nn.functional as F
+from torch_geometric.nn import SAGEConv, global_mean_pool
+
+class GraphPredictor(torch.nn.Module):
     def __init__(self, input_features, hidden_features):
-        super(GCNPredictor, self).__init__()
-        self.conv1 = GCNConv(input_features, hidden_features)
-        self.conv2 = GCNConv(hidden_features, hidden_features)
-        self.fc = torch.nn.Linear(hidden_features, 1)  # Output one value
+        super(GraphPredictor, self).__init__()
+        self.conv1 = SAGEConv(input_features, hidden_features, aggr='mean')  # First GraphSAGE layer
+        self.conv2 = SAGEConv(hidden_features, hidden_features, aggr='mean')  # Second GraphSAGE layer
+        self.fc = torch.nn.Linear(hidden_features, 1)  # Linear layer for output
 
     def forward(self, data):
         x, edge_index, batch = data.x, data.edge_index, data.batch
-        x = self.conv1(x, edge_index)
-        x = F.relu(x)
-        x = self.conv2(x, edge_index)
-        x = torch_geometric.nn.global_mean_pool(x, batch)  # Pooling
-        x = self.fc(x)
+        x = F.relu(self.conv1(x, edge_index))  # Apply first GraphSAGE layer and ReLU activation
+        x = F.relu(self.conv2(x, edge_index))  # Apply second GraphSAGE layer and ReLU activation
+        x = global_mean_pool(x, batch)  # Global mean pooling
+        x = self.fc(x)  # Apply final linear layer
         return x.squeeze()  # Ensure output is 1D
-
-# Function to convert string representations to Python objects
 
 def safe_ast_literal_eval(s):
     try:
@@ -49,13 +49,10 @@ def encode_features(features, feature_map):
     return encoded_features
 
 def train_model():
-# Load the dataset
+
     current_directory = os.path.dirname(__file__)
     file_path = os.path.join(current_directory, "../data/Final_Dataset_for_Model_Train.csv")
     data = pd.read_csv(file_path)
-
-
-
 
     standard_feature_size = 1  # Set this based on your data analysis
 
@@ -75,20 +72,9 @@ def train_model():
 
         return numeric_features[:standard_feature_size]  # Ensure the feature vector is of standard size
 
-
     feature_map = {}  # Dictionary to map strings to integers for node features
-    node_map = {}     # Dictionary to map node identifiers to integers for edges
+    node_map = {}  # Dictionary to map node identifiers to integers for edges
     unique_nodes = set()
-
-
-    def get_unique_nodes(edge_list, node_features_list):
-        unique_nodes = set()
-        for edge in edge_list:
-            unique_nodes.update(edge)
-        for feature in node_features_list:
-            unique_nodes.update(feature)
-        return list(unique_nodes)
-
 
     other_columns = [
         'N Lipids/Layer',
@@ -99,6 +85,8 @@ def train_model():
         'Kappa (RSF)']
 
     data_list = []
+    max_feature_size = 0
+
     for _, row in data.iterrows():
         # Convert string representations to Python objects
         node_features_list = safe_ast_literal_eval(row['Node Features'])
@@ -108,12 +96,17 @@ def train_model():
         for r in other_columns:
             graph_features.append(row[r])
 
+        sample_feature_size = len(node_features_list[0]) - 1 + len(
+            graph_features)  # Adjust based on your actual data structure
+
+        if sample_feature_size > max_feature_size:
+            max_feature_size = sample_feature_size
+
         # Create a mapping for all unique nodes in both node features and edge list
         for edge in edge_list:
             unique_nodes.update(edge)
         for features in node_features_list:
             unique_nodes.add(features[0])  # Assuming first element of each feature list is the node identifier
-
 
         node_map = {node_id: i for i, node_id in enumerate(unique_nodes)}
 
@@ -131,22 +124,37 @@ def train_model():
                 node_features_tensor[node_idx] = torch.tensor(processed_features, dtype=torch.float)
 
         # Prepare edge index tensor
-        edge_index_tensor = torch.tensor([[node_map[node] for node in edge] for edge in edge_list], dtype=torch.long).t().contiguous()
+        edge_index_tensor = torch.tensor([[node_map[node] for node in edge] for edge in edge_list],
+                                         dtype=torch.long).t().contiguous()
 
         graph_features_tensor = torch.tensor(graph_features, dtype=torch.float)
 
         y = torch.tensor([row['Kappa (q^-4)']], dtype=torch.float)
-        data_list.append(Data(x=node_features_tensor, edge_index=edge_index_tensor, y=y, graph_features=graph_features_tensor))
+        # Expand and repeat graph-level features for each node
+        expanded_graph_features = graph_features_tensor.unsqueeze(0).repeat(num_nodes, 1)
 
+        # Concatenate graph-level features with node features
+        result_tensor = torch.cat([node_features_tensor, expanded_graph_features], dim=1)
 
-    # if 'D2B' not in node_map:
-    #     print("'D2B' is not in the node_map. You might need to update your node_map or retrain the model.")
+        current_size = result_tensor.size(-1)
 
+        # print(current_size,max_feature_size)
+        #
+        # print(result_tensor.shape)
+
+        if current_size < max_feature_size:
+            padding_needed = max_feature_size - current_size
+            pad_tensor = torch.full((result_tensor.size(0), padding_needed), 0, dtype=result_tensor.dtype)
+            result_tensor = torch.cat([result_tensor, pad_tensor], dim=-1)
+
+        print(result_tensor.shape)
+
+        data_list.append(Data(x=result_tensor, edge_index=edge_index_tensor, y=y))
 
     # After creating feature_map and node_map during training
-    torch.save(feature_map, os.path.join(current_directory,'../models/feature_map.pth'))
-    torch.save(node_map, os.path.join(current_directory,'../models/node_map.pth'))
-
+    torch.save(feature_map, os.path.join(current_directory, '../models/feature_map_2.pth'))
+    torch.save(node_map, os.path.join(current_directory, '../models/node_map_2.pth'))
+    torch.save(unique_nodes, os.path.join(current_directory, '../models/unique_nodes_2.pth'))
 
     # Split the data into training and validation sets
     train_data = data_list[:int(0.8 * len(data_list))]
@@ -155,12 +163,7 @@ def train_model():
     train_loader = DataLoader(train_data, batch_size=32, shuffle=True)
     val_loader = DataLoader(val_data, batch_size=32, shuffle=False)
 
-    # Define the GCN model
-    # Adjust the model instantiation accordingly
-
-    # Create model instance, optimizer, and loss function
-
-    model = GCNPredictor(input_features=standard_feature_size, hidden_features=32)
+    model = GraphPredictor(input_features=9, hidden_features=32)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
     loss_fn = torch.nn.MSELoss()
@@ -169,8 +172,7 @@ def train_model():
     train_losses = []
     val_losses = []
 
-
-    for epoch in range(700):
+    for epoch in range(100):
         model.train()
         total_train_loss = 0.0
         for data in train_loader:
@@ -196,16 +198,6 @@ def train_model():
 
         print(f"Epoch {epoch + 1}, Train Loss: {avg_train_loss:.4f}, Validation Loss: {avg_val_loss:.4f}")
 
-    # After your training loop
-    # Assuming 'model' is your trained model instance
-
-    torch.save(model.state_dict(), os.path.join(current_directory, '../models/gcn_complete_model.pth'))
-    # Assume feature_map and node_map are created during training
-    loss_df = pd.DataFrame({
-        'Train Losses': train_losses,
-        'Test Losses': val_losses,
-    })
-
     def evaluate_model(model, loader):
         model.eval()
         actuals = []
@@ -230,6 +222,15 @@ def train_model():
     print(f'Root Mean Squared Error: {rmse:.4f}')
     print(f'Mean Absolute Error: {mae:.4f}')
     print(f'R-squared: {r2:.4f}')
+
+    model_path = os.path.join(current_directory, '../models/graph_sage_model.pth')
+    torch.save(model.state_dict(), model_path)
+
+
+    loss_df = pd.DataFrame({
+        'Train Losses': train_losses,
+        'Test Losses': val_losses,
+    })
 
     plt.figure(figsize=(10, 5))
     plt.plot(range(1, len(train_losses) + 1), train_losses, label='Train Loss')
@@ -283,3 +284,5 @@ def train_model():
     }
 
     return result_json
+
+train_model()

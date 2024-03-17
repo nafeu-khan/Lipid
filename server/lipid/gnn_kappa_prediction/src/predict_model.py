@@ -11,25 +11,25 @@ import torch_geometric
 from torch_geometric.data import Data
 from torch_geometric.nn import GCNConv
 import torch.nn.functional as F
+from io import StringIO
 
-def process_nodes(lipid_name):
-    current_directory = os.path.dirname(__file__)
-    node_feature_dir = os.path.join(current_directory, '../data/TextFiles/Node_Features/')
-    adjacency_matrix_dir = os.path.join(current_directory, '../data/TextFiles/Adjacency_Matrix/')
 
+def process_nodes_from_content(node_feature_content, adjacency_matrix_content):
     try:
-        # Define the path to your node feature matrix data file
-        node_feature_file_path = os.path.join(node_feature_dir, f"{lipid_name}.txt")
+        # Convert the node feature content string into a file-like object
+        node_feature_file_like = StringIO(node_feature_content)
 
         # Read the node feature matrix data into a DataFrame
-        node_feature_df = pd.read_csv(node_feature_file_path, sep='\t', index_col=0)
+        node_feature_df = pd.read_csv(node_feature_file_like, sep='\t', index_col=0)
 
-        # Define the path to your adjacency matrix data file
-        adjacency_matrix_file_path = os.path.join(adjacency_matrix_dir, f"{lipid_name} .txt")
+        # Convert the adjacency matrix content string into a file-like object
+        adjacency_matrix_file_like = StringIO(adjacency_matrix_content)
+
+        # Read the adjacency matrix data into a DataFrame
+        adjacency_df = pd.read_csv(adjacency_matrix_file_like, sep='\t', index_col=0)
     except Exception as e:
         return ([], [])
-    # Read the adjacency matrix data into a DataFrame
-    adjacency_df = pd.read_csv(adjacency_matrix_file_path, sep='\t', index_col=0)
+
     node_features = []
     edge_features = []
     # Process the node feature DataFrame
@@ -38,11 +38,19 @@ def process_nodes(lipid_name):
         if features:
             for i in features:
                 node_features.append((row.name, i))
+    # Process the adjacency DataFrame
     for source_node, row in adjacency_df.iterrows():
         for target_node, value in row.items():
             if value > 0.0:
                 edge_features.append((source_node, target_node))
     return (node_features, edge_features)
+
+
+def file_to_string(file):
+    if file:
+        return file.read().decode('utf-8')
+    return None
+
 
 # Function to safely convert string representations to Python objects
 def safe_ast_literal_eval(s):
@@ -73,12 +81,13 @@ def load_model():
     current_directory = os.path.dirname(__file__)
     model_path = os.path.join(current_directory, '../models/gcn_complete_model.pth')
     model = GCNPredictor(input_features=1, hidden_features=32)
-    model.load_state_dict(torch.load(model_path))# Set the model to inference mode
+    model.load_state_dict(torch.load(model_path))  # Set the model to inference mode
     return model
 
-  # Ensure output is 1D
+
+# Ensure output is 1D
 def predict_model(request):
-    model=load_model()
+    model = load_model()
     current_directory = os.path.dirname(__file__)
     # Declare the paths for the model, feature map, and node map
     feature_map_path = os.path.join(current_directory, '../models/feature_map.pth')
@@ -90,37 +99,49 @@ def predict_model(request):
 
     model.eval()
 
-    adjacency_file = request.FILES.get('adjacencyFile')
-    node_feature_file = request.FILES.get('nodeFeatureFile')
+    adjacency_file1 = request.FILES.get('adjacencyFile1')
+    node_feature_file1 = request.FILES.get('nodeFeatureFile1')
+
     # Accessing text and other data
-    adjacency_text = request.POST.get('adjacencyText')
-    node_feature_text = request.POST.get('nodeFeatureText')
+    adjacency_text1 = request.POST.get('adjacencyText1')
+    node_feature_text1 = request.POST.get('nodeFeatureText1')
+
     type = request.POST.get('type')
+    print(type)
     compositions = request.POST.get('compositions')
     data = request.POST.get('data')
     compositions = json.loads(compositions)
+    print(compositions)
     data = json.loads(data)
-    comp_name = compositions["comp1"]["name"]
+
+    node_features_list = []
+    adj_edge_list = []
+
     comp_name_format = f'{compositions["comp1"]["percentage"]}% {compositions["comp1"]["name"]}'
 
-    # Specify the desired path to save the adjacency_file
-    current_directory = os.path.dirname(__file__)
-    save_path = os.path.join(current_directory,
-                             f'../data/TextFiles/Adjacency_Matrix/{comp_name} .txt')
-    # Save the adjacency_file to the specified path
-    with open(save_path, 'wb') as destination:
-        for chunk in adjacency_file.chunks():
-            destination.write(chunk)
-    save_path = os.path.join(current_directory, f'../data/TextFiles/Node_Features/{comp_name}.txt')
+    print(node_feature_file1)
 
-    # Save the adjacency_file to the specified path
-    with open(save_path, 'wb') as destination:
-        for chunk in node_feature_file.chunks():
-            destination.write(chunk)
+    node_features_0, edge_list_1 = process_nodes_from_content(file_to_string(node_feature_file1),
+                                                              file_to_string(adjacency_file1))
+    node_features_list.extend(node_features_0)
+    adj_edge_list.extend(edge_list_1)
+
+    if type != 'single':
+        adjacency_file2 = request.FILES.get('adjacencyFile2')
+        node_feature_file2 = request.FILES.get('nodeFeatureFile2')
+
+        adjacency_text2 = request.POST.get('adjacencyText2')
+        node_feature_text2 = request.POST.get('nodeFeatureText2')
+
+        comp_name_format = f'{compositions["comp1"]["percentage"]}% {compositions["comp1"]["name"]}; {compositions["comp2"]["percentage"]}% {compositions["comp2"]["name"]}'
+        node_features_0, edge_list_1 = process_nodes_from_content(file_to_string(node_feature_file2),
+                                                                  file_to_string(adjacency_file2))
+
+        node_features_list.extend(node_features_0)
+        adj_edge_list.extend(edge_list_1)
 
     standard_feature_size = 1  # Ensure this matches the size used in training
 
-    # Function to process node features for prediction
     def process_node_features_for_prediction(features):
         numeric_features = []
         for feature in features[1:]:
@@ -130,7 +151,6 @@ def predict_model(request):
         # Pad or truncate to standard feature size
         return numeric_features[:standard_feature_size] + [0] * (standard_feature_size - len(numeric_features))
 
-    # Prediction function
     def predict_kappa_q_4(model, node_features_str, edge_list_str, graph_features_str):
         node_features = safe_ast_literal_eval(node_features_str)
         edge_list = safe_ast_literal_eval(edge_list_str)
@@ -145,7 +165,9 @@ def predict_model(request):
                 processed_features = process_node_features_for_prediction(features)
                 node_features_tensor[node_idx] = torch.tensor(processed_features, dtype=torch.float)
 
-        edge_index_tensor = torch.tensor([[node_map[node] if node in node_map else random.randint(0, num_nodes-1) for node in edge] for edge in edge_list], dtype=torch.long).t().contiguous()
+        edge_index_tensor = torch.tensor(
+            [[node_map[node] if node in node_map else random.randint(0, num_nodes - 1) for node in edge] for edge in
+             edge_list], dtype=torch.long).t().contiguous()
         graph_features_tensor = torch.tensor(graph_features, dtype=torch.float)
 
         data = Data(x=node_features_tensor, edge_index=edge_index_tensor, graph_features=graph_features_tensor)
@@ -155,26 +177,10 @@ def predict_model(request):
             predicted_kappa_q_4 = prediction.item()
         return predicted_kappa_q_4
 
-
     def extract_percentages(composition_str):
         pattern = r"(\d+(?:\.\d+)?)%"
         percentages = re.findall(pattern, composition_str)
-        return [float(p)/100 for p in percentages]
-
-    # # Example input data
-    # composition = "100% DYPC"
-    # n_lipids_layer = 2916
-    # n_water = 205428
-    # temperature_k = 310
-    # avg_membrane_thickness = 3.23
-    # node_features_str = "[('D2A', 'C3'), ('D2B', 'C3'), ('GL2', 'Na'), ('NC3', 'Q0'), ('PO4', 'Qa'), ('C3A', 'C1'), ('C1B', 'C1'), ('C3B', 'C1'), ('GL1', 'Na'), ('C1A', 'C1')]"
-    # edge_list_str = "[('C1A', 'D2A'), ('GL1', 'PO4'), ('C3B', 'D2B'), ('C3A', 'D2A'), ('GL1', 'GL2'), ('C1B', 'D2B'), ('NC3', 'PO4'), ('C1B', 'GL2'), ('C1A', 'GL1')]"
-    # graph_features_str = extract_percentages(composition)
-    #
-    #
-    # # Predicting Kappa q^-4
-    # print("Predicted Kappa q^-4:", predicted_kappa_q_4)
-
+        return [float(p) / 100 for p in percentages]
 
     composition = comp_name_format
     n_lipids_layer = data["Number of Lipid Per Layer"]
@@ -182,18 +188,22 @@ def predict_model(request):
     temperature_k = data["Temperature"]
     avg_membrane_thickness = data["Membrane Thickness"]
     graph_features_str = extract_percentages(composition)
-    kappa_BW_DCF=data["Kappa BW-DCF(Bandwidth Dependent Die-electric Constant Fluctuation)"]
-    kappa_RSF=data["Kappa-RSF"]
+    kappa_BW_DCF = data["Kappa BW-DCF(Bandwidth Dependent Die-electric Constant Fluctuation)"]
+    kappa_RSF = data["Kappa-RSF"]
 
-    graph_features_str.extend([n_lipids_layer,n_water,temperature_k,avg_membrane_thickness,kappa_BW_DCF,kappa_RSF])
-
-    # print(graph_features_str)
-
-    # from server.lipid.gnn_kappa_prediction.src.extract_dataset import process_nodes
-    node_features_str,edge_list_str =process_nodes(comp_name)
-
-    predicted_kappa_q_4 = predict_kappa_q_4(model, node_features_str, edge_list_str, graph_features_str)
+    node_features_list = list(set(node_features_list))
+    edge_list_list = sort_tuple(adj_edge_list)
 
 
-    return {'pred':predicted_kappa_q_4}
+    graph_features_str.extend([n_lipids_layer, n_water, temperature_k, avg_membrane_thickness, kappa_BW_DCF, kappa_RSF])
 
+
+    predicted_kappa_q_4 = predict_kappa_q_4(model, list(set(node_features_list)), sort_tuple(edge_list_list), graph_features_str)
+
+    return {'pred': predicted_kappa_q_4}
+
+
+def sort_tuple(my_list):
+    my_list = [(min(i[0], i[1]), max(i[0], i[1])) for i in my_list]
+    my_list.sort()
+    return list(set(my_list))

@@ -32,7 +32,11 @@ const initialState = {
 export const evaluation = createSlice({
   name: "eval",
   initialState,
-  reducers: {},
+  reducers: {
+    setEvalData: (state, {payload}) => {
+      state.data = payload
+    }
+  },
   extraReducers: (builder) => {
     builder.addCase(evaluateModel.fulfilled, (state, { payload }) => {
       state.loading = false;
@@ -48,7 +52,7 @@ export const evaluation = createSlice({
 });
 
 // Action creators are generated for each case reducer function
-// export const { changeActiveLipid, changeNumOfComp, changeShowTable } =
-//   evaluation.actions;
+export const { setEvalData } =
+  evaluation.actions;
 
 export default evaluation.reducer;

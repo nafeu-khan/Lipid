@@ -20,6 +20,7 @@ function Lipid() {
   return (
     <div className="h-screen  relative overflow-hidden">
       <Header />
+      
       <div className="flex h-full w-full">
         <div
           className={`relative border-r-2 min-w-[250px] shadow-xl p-4 bg-[whitesmoke] flex flex-col ${

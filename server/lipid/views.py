@@ -1,32 +1,14 @@
 import json
 import os
-
-from django.shortcuts import render
 import pandas as pd
-import torch
-from django.template.context_processors import csrf
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import api_view
-from torch_geometric.data import Data
-from torch_geometric.loader import DataLoader
-import ast
-from torch_geometric.nn import GCNConv, global_mean_pool
-import torch.nn.functional as F
-from torch.nn import Linear
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
-import numpy as np
 import matplotlib.pyplot as plt
 from django.http import JsonResponse
-from io import BytesIO
-import base64
-
-from .gnn_kappa_prediction.src.predict_model import predict_model as pm
-from .gnn_kappa_prediction.src.train_model import train_model
+from .gnn_kappa_prediction.src.predict_model_2 import predict_model as pm
+from .gnn_kappa_prediction.src.train_model_2 import train_model
 from .static.Predict_Value.Predict_value import predict_value
 from .static.gnn_molecule_edge_only import edge_pred
-from .temp import make_dataset
 
 plt.switch_backend('agg')
 
